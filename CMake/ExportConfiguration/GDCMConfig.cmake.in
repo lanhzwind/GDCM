@@ -41,8 +41,7 @@ else()
     # This is a build tree
     set( GDCM_INCLUDE_DIRS @GDCM_INCLUDE_PATH@)
     set(GDCM_LIBRARY_DIRS @GDCM_LIBRARY_DIR@)
-    set(GDCM_LIBRARIES
-    "gdcmCommon;gdcmDICT;gdcmDSED;gdcmIOD;gdcmMSFF;gdcmMEXD;gdcmjpeg8;gdcmjpeg12;gdcmjpeg16;gdcmexpat;gdcmopenjpeg;gdcmcharls;gdcmzlib;gdcmuuid;socketxx")
+
     include(${SELF_DIR}/GDCMExports.cmake)
 
   else()
