@@ -40,6 +40,7 @@
  * Todo: check compat API with jhead
  */
 #include "gdcmFilename.h"
+#include "gdcmImageHelper.h"
 #include "gdcmDirectory.h"
 #include "gdcmMediaStorage.h"
 #include "gdcmSmartPointer.h"
@@ -132,7 +133,7 @@ static void PrintHelp()
   std::cout << "     --endian %s       Endianness (LSB/MSB)." << std::endl;
   std::cout << "  -d --depth %d        Depth (Either 8/16/32 or BitsAllocated eg. 12 when known)." << std::endl;
   std::cout << "     --sign %s         Pixel sign (0/1)." << std::endl;
-  std::cout << "     --spp  %d         Sample Per Pixel (1/3)." << std::endl;
+  std::cout << "     --spp  %d         Sample Per Pixel (1/3/4)." << std::endl;
   std::cout << "     --pc [01]         Change planar configuration." << std::endl;
   std::cout << "     --pi [str]        Change photometric interpretation." << std::endl;
   std::cout << "     --pf %d,%d,%d     Change pixel format: (BA,BS,HB)." << std::endl;
@@ -194,22 +195,24 @@ static bool AddStudyDateTime(gdcm::DataSet &ds, const char *filename )
   const size_t datelen = 8;
   int res = gdcm::System::GetCurrentDateTime(date);
   if( !res ) return false;
-    {
-    gdcm::DataElement de( gdcm::Tag(0x0008,0x0020) );
-    // Do not copy the whole cstring:
-    de.SetByteValue( date, datelen );
-    de.SetVR( gdcm::Attribute<0x0008,0x0020>::GetVR() );
-    ds.Insert( de );
-    }
+
+  {
+  gdcm::DataElement de( gdcm::Tag(0x0008,0x0020) );
+  // Do not copy the whole cstring:
+  de.SetByteValue( date, datelen );
+  de.SetVR( gdcm::Attribute<0x0008,0x0020>::GetVR() );
+  ds.Insert( de );
+  }
+
   // StudyTime
   const size_t timelen = 6; // get rid of milliseconds
-    {
-    gdcm::DataElement de( gdcm::Tag(0x0008,0x0030) );
-    // Do not copy the whole cstring:
-    de.SetByteValue( date+datelen, timelen );
-    de.SetVR( gdcm::Attribute<0x0008,0x0030>::GetVR() );
-    ds.Insert( de );
-    }
+  {
+  gdcm::DataElement de( gdcm::Tag(0x0008,0x0030) );
+  // Do not copy the whole cstring:
+  de.SetByteValue( date+datelen, timelen );
+  de.SetVR( gdcm::Attribute<0x0008,0x0030>::GetVR() );
+  ds.Insert( de );
+  }
   return AddContentDateTime(ds, filename);
 }
 
@@ -218,6 +221,7 @@ static bool AddUIDs(int sopclassuid, std::string const & sopclass, std::string c
 {
   gdcm::DataSet & ds = writer.GetFile().GetDataSet();
   gdcm::MediaStorage ms = gdcm::MediaStorage::MS_END;
+  gdcm::Pixmap &image = writer.GetPixmap();
   if( sopclassuid )
     {
     // Is it by value or by name ?
@@ -229,35 +233,36 @@ static bool AddUIDs(int sopclassuid, std::string const & sopclass, std::string c
       {
       std::cerr << "not implemented" << std::endl;
       }
-    if( !gdcm::MediaStorage::IsImage(ms) )
-      {
-      std::cerr << "invalid media storage (no pixel data): " << sopclass << std::endl;
-      return false;
-      }
-
-    const char* msstr = gdcm::MediaStorage::GetMSString(ms);
-    if( !msstr )
-      {
-      std::cerr << "problem with media storage: " << sopclass << std::endl;
-      return false;
-      }
-    gdcm::DataElement de( gdcm::Tag(0x0008, 0x0016 ) );
-    de.SetByteValue( msstr, (uint32_t)strlen(msstr) );
-    de.SetVR( gdcm::Attribute<0x0008, 0x0016>::GetVR() );
-    ds.Insert( de );
     }
   else
-    {
-    // FIXME we are copying the default behavior of gdcm.PixmapWriter here:
-    ms = gdcm::MediaStorage::SecondaryCaptureImageStorage;
+    { // guess a default
+    ms = gdcm::ImageHelper::ComputeMediaStorageFromModality(
+      "OT", image.GetNumberOfDimensions(),
+      image.GetPixelFormat(), image.GetPhotometricInterpretation() );
     }
 
-  gdcm::Pixmap &image = writer.GetPixmap();
+  if( !gdcm::MediaStorage::IsImage(ms) )
+    {
+    std::cerr << "invalid media storage (no pixel data): " << sopclass << std::endl;
+    return false;
+    }
   if( ms.GetModalityDimension() < image.GetNumberOfDimensions() )
     {
     std::cerr << "Could not find Modality" << std::endl;
     return false;
     }
+  const char* msstr = gdcm::MediaStorage::GetMSString(ms);
+  if( !msstr )
+    {
+    std::cerr << "problem with media storage: " << sopclass << std::endl;
+    return false;
+    }
+  {
+    gdcm::DataElement de( gdcm::Tag(0x0008, 0x0016 ) );
+    de.SetByteValue( msstr, (uint32_t)strlen(msstr) );
+    de.SetVR( gdcm::Attribute<0x0008, 0x0016>::GetVR() );
+    ds.Insert( de );
+  }
 
     {
     gdcm::DataElement de( gdcm::Tag(0x0020,0x000d) ); // Study
@@ -276,7 +281,10 @@ static bool AddUIDs(int sopclassuid, std::string const & sopclass, std::string c
   return true;
 }
 
-static bool PopulateSingeFile( gdcm::PixmapWriter & writer, gdcm::SequenceOfFragments *sq , gdcm::ImageCodec & jpeg, const char *filename, std::streampos const pos = 0 )
+// Append data to either sq or bv depending whether encapsulated or not
+static bool PopulateSingeFile( gdcm::PixmapWriter & writer,
+  gdcm::SequenceOfFragments *sq , gdcm::ByteValue * bv, gdcm::ImageCodec & jpeg,
+  const char *filename, std::streampos const pos = 0 )
 {
   /*
    * FIXME: when JPEG contains JFIF marker, we should only read them
@@ -328,9 +336,11 @@ static bool PopulateSingeFile( gdcm::PixmapWriter & writer, gdcm::SequenceOfFrag
     }
   else
     {
-    pixeldata.SetByteValue( buf, (uint32_t)len );
+    gdcm::ByteValue frame( buf, (uint32_t)len );
+    bv->Append( frame );
+    pixeldata.SetValue( *bv );
     }
-    delete[] buf;
+  delete[] buf;
   image.SetDataElement( pixeldata );
 
   return true;
@@ -342,18 +352,16 @@ static bool Populate( gdcm::PixmapWriter & writer, gdcm::ImageCodec & jpeg, gdcm
   bool b = true;
   gdcm::Pixmap &image = writer.GetPixmap();
   image.SetNumberOfDimensions( ndim );
+
+  gdcm::SmartPointer<gdcm::SequenceOfFragments> sq = new gdcm::SequenceOfFragments;
+  gdcm::SmartPointer<gdcm::ByteValue> bv = new gdcm::ByteValue;
+  for(; it != filenames.end(); ++it)
+    {
+    b = b && PopulateSingeFile( writer, sq, bv, jpeg, it->c_str(), pos );
+    }
   if( filenames.size() > 1 )
     {
     image.SetNumberOfDimensions( 3 );
-    }
-
-  gdcm::SmartPointer<gdcm::SequenceOfFragments> sq = new gdcm::SequenceOfFragments;
-  for(; it != filenames.end(); ++it)
-    {
-    b = b && PopulateSingeFile( writer, sq, jpeg, it->c_str(), pos );
-    }
-  if( filenames.size() > 1 )
-    {
     image.SetDimension(2,  (unsigned int)filenames.size() );
     }
 
@@ -577,7 +585,7 @@ int main (int argc, char *argv[])
             {
             assert( strcmp(s, "offset") == 0 );
             poffset = 1;
-            start_pos = atoll(optarg);
+            start_pos = (size_t)atoll(optarg);
             }
           //printf (" with arg %s", optarg);
           }
@@ -785,7 +793,7 @@ int main (int argc, char *argv[])
     }
   if( spp )
     {
-    if( pixelspp != 1 && pixelspp != 3 ) return 1;
+    if( pixelspp != 1 && pixelspp != 3 && pixelspp != 4 ) return 1;
     }
   if( pconf != 0 && pconf != 1 ) return 1;
   if( pconf )
@@ -908,9 +916,13 @@ int main (int argc, char *argv[])
       dims[1] = size[1];
       rle.SetDimensions( dims );
       gdcm::PixelFormat pf = gdcm::PixelFormat::UINT8;
-      if( !GetPixelFormat( pf, depth, bpp, sign, pixelsign ) ) return 1;
+      if( !GetPixelFormat( pf, depth, bpp, sign, pixelsign, spp, pixelspp ) ) return 1;
       rle.SetPixelFormat( pf );
       gdcm::PhotometricInterpretation pi = refpi;
+      if( spp )
+        {
+        if( pixelspp == 3 ) pi = gdcm::PhotometricInterpretation::RGB;
+        }
       rle.SetPhotometricInterpretation( pi );
 
       if( !Populate( writer, rle, filenames ) ) return 1;
@@ -933,7 +945,7 @@ int main (int argc, char *argv[])
       // Let's handle the case where user really wants to specify the data:
       gdcm::PixelFormat pf = gdcm::PixelFormat::UINT8;
       if( !GetPixelFormat( pf, depth, bpp, sign, pixelsign ) ) return 1;
-
+      pnm.SetPixelFormat( pf );
       gdcm::PixmapWriter writer;
       if( !Populate( writer, pnm, filenames ) ) return 1;
       // populate will guess pixel format and photometric inter from file, need
@@ -946,6 +958,10 @@ int main (int argc, char *argv[])
         {
         writer.GetPixmap().SetPhotometricInterpretation( refpi );
         }
+      // HACK
+      if( endian && lsb_msb == "LSB" )
+        writer.GetPixmap().SetTransferSyntax( gdcm::TransferSyntax::ImplicitVRLittleEndian );
+
       if( !AddUIDs(sopclassuid, sopclass, study_uid, series_uid, writer ) ) return 1;
 
       writer.SetFileName( outfilename );
@@ -993,6 +1009,7 @@ int main (int argc, char *argv[])
       || gdcm::System::StrCaseCmp(inputextension,".j2k") == 0
       || gdcm::System::StrCaseCmp(inputextension,".j2c") == 0
       || gdcm::System::StrCaseCmp(inputextension,".jpx") == 0
+      || gdcm::System::StrCaseCmp(inputextension,".jpf") == 0
       || gdcm::System::StrCaseCmp(inputextension,".jpc") == 0 )
       {
       /*

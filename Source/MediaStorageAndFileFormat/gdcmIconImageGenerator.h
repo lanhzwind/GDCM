@@ -23,7 +23,7 @@ class IconImageGeneratorInternals;
 /**
  * \brief IconImageGenerator
  * This filter will generate a valid Icon from the Pixel Data element (an
- * instance of gdcm::Pixmap).
+ * instance of Pixmap).
  * To generate a valid Icon, one is only allowed the following Photometric
  * Interpretation:
  * - MONOCHROME1
@@ -57,7 +57,7 @@ public:
   /// LargestImagePixelValue DICOM attribute.
   void SetPixelMinMax(double min, double max);
 
-  /// Instead of explicitely specifying the min/max value for the rescale
+  /// Instead of explicitly specifying the min/max value for the rescale
   /// operation, let the internal mechanism compute the min/max of icon and
   /// rescale to best appropriate.
   void AutoPixelMinMax(bool b);
@@ -65,7 +65,7 @@ public:
   /// Converting from RGB to PALETTE_COLOR can be a slow operation. However DICOM
   /// standard requires that color icon be described as palette. Set this boolean
   /// to false only if you understand the consequences.
-  /// \default true, false generates invalid Icon Image Sequence
+  /// default value is true, false generates invalid Icon Image Sequence
   void ConvertRGBToPaletteColor(bool b);
 
   /// Set a pixel value that should be discarded. This happen typically for CT image, where

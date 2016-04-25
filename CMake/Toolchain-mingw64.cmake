@@ -2,7 +2,7 @@
 # Usage:
 #
 #  $ sudo apt-get install mingw-w64
-#  $ cmake ../gdcm -DCMAKE_TOOLCHAIN_FILE=../gdcm/CMake/Toolchain-mingw64.cmake
+#  $ cmake -DCMAKE_TOOLCHAIN_FILE=../gdcm/CMake/Toolchain-mingw64.cmake ../gdcm
 #
 #
 #  Copyright (c) 2006-2011 Mathieu Malaterre <mathieu.malaterre@gmail.com>
@@ -29,9 +29,3 @@ set(CMAKE_FIND_ROOT_PATH  /usr/x86_64-w64-mingw32)
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-
-#find_package(WINE REQUIRED)
-find_program(WINE_EXECUTABLE
-  NAMES wine
-  )
-set(TARGET_SYSTEM_EMULATOR ${WINE_EXECUTABLE})

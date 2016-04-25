@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 2.8.7)
+
 if(NOT CHARLS_NAMESPACE)
   set(CHARLS_NAMESPACE "CHARLS")
   set(CHARLS_STANDALONE 1)
@@ -6,7 +8,6 @@ endif()
 string(TOLOWER ${CHARLS_NAMESPACE} CHARLS_LIBRARY_NAME)
 
 project(${CHARLS_NAMESPACE} CXX)
-cmake_minimum_required(VERSION 2.6)
 
 #-----------------------------------------------------------------------------
 # CHARLS version number
@@ -58,7 +59,7 @@ endif()
 add_library(${CHARLS_LIBRARY_NAME} header.cpp  interface.cpp  jpegls.cpp
   stdafx.cpp
   )
-set_target_properties(${CHARLS_LIBRARY_NAME} PROPERTIES ${GDCM_LIBRARY_PROPERTIES} LINK_INTERFACE_LIBRARIES "")
+set_target_properties(${CHARLS_LIBRARY_NAME} PROPERTIES ${GDCM_LIBRARY_PROPERTIES})
 
 # Install library
 if(NOT CHARLS_INSTALL_NO_LIBRARIES)

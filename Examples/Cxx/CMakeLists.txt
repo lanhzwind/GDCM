@@ -32,6 +32,8 @@ mark_as_advanced(QT_QMAKE_EXECUTABLE)
 endif()
 
 set(EXAMPLES_SRCS
+  MakeTemplate
+  FixOrientation
   DumpGEMSMovieGroup
   QIDO-RS
   DumpExamCard
@@ -39,6 +41,7 @@ set(EXAMPLES_SRCS
   ExtractIconFromFile
   CreateJPIPDataSet
   DumpADAC
+  DumpToshibaDTI
   DumpImageHeaderInfo
   ReadMultiTimesException
   pmsct_rgb1
@@ -54,6 +57,7 @@ set(EXAMPLES_SRCS
   GetSequenceUltrasound
   ReadAndPrintAttributes
   ChangeSequenceUltrasound
+  ChangePrivateTags
   LargeVRDSExplicit
   ExtractEncryptedContent
   ReadAndDumpDICOMDIR

@@ -151,6 +151,7 @@ bool PhotometricInterpretation::IsLossless() const
   switch ( PIField )
     {
   case MONOCHROME1:
+  /* technically MPEG-2 is lossy however the PI is set to MONOCHROME2 */
   case MONOCHROME2:
   case PALETTE_COLOR:
   case RGB:
@@ -160,13 +161,11 @@ bool PhotometricInterpretation::IsLossless() const
   case YBR_FULL:
   case YBR_RCT:
     return true;
-    break;
   case YBR_FULL_422:
   case YBR_PARTIAL_422:
   case YBR_PARTIAL_420:
   case YBR_ICT:
     return false;
-    break;
   default:
     assert(0);
     return false;
@@ -207,7 +206,7 @@ bool PhotometricInterpretation::IsSameColorSpace( PhotometricInterpretation cons
 //  // A.8.5.4 Multi-frame True Color SC Image IOD Content Constraints
 //  if( PIField == RGB )
 //    {
-//    if( ts == gdcm::TransferSyntax::
+//    if( ts == TransferSyntax::
 //    }
 //  return PIField;
 //}

@@ -27,7 +27,7 @@
 #include "gdcmDirectory.h"
 #include "gdcmMediaStorage.h"
 
-int TestvtkGDCMMetaImageWrite(const char *filename, bool verbose)
+static int TestvtkGDCMMetaImageWrite(const char *filename, bool verbose)
 {
   if( verbose )
     std::cerr << "Reading : " << filename << std::endl;

@@ -23,7 +23,7 @@
 #include "gdcmValueIO.h"
 #include "gdcmSwapper.h"
 
-namespace gdcm
+namespace gdcm_ns
 {
 //-----------------------------------------------------------------------------
 template <typename TSwap>
@@ -366,7 +366,8 @@ std::istream &ExplicitDataElement::ReadValue(std::istream &is, bool readvalues)
 template <typename TSwap>
 std::istream &ExplicitDataElement::ReadWithLength(std::istream &is, VL & length)
 {
-  return Read<TSwap>(is); (void)length;
+  (void)length;
+  return Read<TSwap>(is);
 }
 
 //-----------------------------------------------------------------------------
@@ -422,8 +423,7 @@ const std::ostream &ExplicitDataElement::Write(std::ostream &os) const
       {
       const VR un = VR::UN;
       un.Write(os);
-      Value* v = &*ValueField;
-      if( dynamic_cast<const SequenceOfItems*>(v) )
+      if( ValueField && dynamic_cast<const SequenceOfItems*>(&*ValueField) )
         {
         VL vl = 0xFFFFFFFF;
         assert( vl.IsUndefined() );
@@ -557,6 +557,6 @@ const std::ostream &ExplicitDataElement::Write(std::ostream &os) const
 
 
 
-} // end namespace gdcm
+} // end namespace gdcm_ns
 
 #endif // GDCMEXPLICITDATAELEMENT_TXX

@@ -24,7 +24,7 @@
 #include "gdcmByteSwapFilter.h"
 #endif
 
-namespace gdcm
+namespace gdcm_ns
 {
 
 class DataSet;
@@ -112,7 +112,7 @@ public:
       || TagField == Tag(0xfeff, 0xdde0) )
       {
       gdcmWarningMacro( "ByteSwaping Private SQ: " << TagField );
-      // Invert previously read TagField since wrong endianess:
+      // Invert previously read TagField since wrong endianness:
       TagField = Tag( SwapperDoOp::Swap( TagField.GetGroup() ), SwapperDoOp::Swap( TagField.GetElement() ) );
       assert ( TagField == Tag(0xfffe, 0xe000)
         || TagField == Tag(0xfffe, 0xe0dd) );
@@ -322,7 +322,7 @@ inline std::ostream& operator<<(std::ostream& os, const Item &val)
 }
 
 
-} // end namespace gdcm
+} // end namespace gdcm_ns
 
 #include "gdcmItem.txx"
 

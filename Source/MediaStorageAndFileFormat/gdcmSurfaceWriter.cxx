@@ -199,8 +199,8 @@ bool SurfaceWriter::PrepareWrite()
             processingAlgoIdSQ->AddItem(item);
           }
 
-          ::gdcm::Item &    processingAlgoIdItem  = processingAlgoIdSQ->GetItem(1);
-          ::gdcm::DataSet & processingAlgoIdDS    = processingAlgoIdItem.GetNestedDataSet();
+          Item &    processingAlgoIdItem  = processingAlgoIdSQ->GetItem(1);
+          DataSet & processingAlgoIdDS    = processingAlgoIdItem.GetNestedDataSet();
 
           //*****   Algorithm Family Code Sequence    *****//
           //See: PS.3.3 Table 8.8-1 and PS 3.16 Context ID 7162
@@ -233,8 +233,8 @@ bool SurfaceWriter::PrepareWrite()
               algoFamilyCodeSQ->AddItem(item);
             }
 
-            ::gdcm::Item &    algoFamilyCodeItem  = algoFamilyCodeSQ->GetItem(1);
-            ::gdcm::DataSet & algoFamilyCodeDS    = algoFamilyCodeItem.GetNestedDataSet();
+            Item &    algoFamilyCodeItem  = algoFamilyCodeSQ->GetItem(1);
+            DataSet & algoFamilyCodeDS    = algoFamilyCodeItem.GetNestedDataSet();
 
             //*****   CODE SEQUENCE MACRO ATTRIBUTES   *****//
             {
@@ -583,6 +583,77 @@ bool SurfaceWriter::PrepareWrite()
 
           pointIndexListDS0.Replace( typedPointIndexListDE );
         }
+
+        //*****   Add empty values in unused but required tags (Type 2)   *****//
+
+        DataElement emptyOWDE;
+        emptyOWDE.SetVLToUndefined();
+        emptyOWDE.SetVR( VR::OW );
+        SmartPointer<ByteValue> emptyValueOW = new ByteValue;
+        emptyOWDE.SetValue(*emptyValueOW);
+
+        // Vertex Point Index List ( Type 2 )
+        Tag vertexPointIndexListTag(0x0066, 0x0025);
+        if( !surfaceMeshPrimitivesDS.FindDataElement( vertexPointIndexListTag ) )
+        {
+          emptyOWDE.SetTag( vertexPointIndexListTag );
+          surfaceMeshPrimitivesDS.Insert( emptyOWDE );
+        }
+
+        // Edge Point Index List ( Type 2 )
+        Tag edgePointIndexListTag(0x0066, 0x0024);
+        if( !surfaceMeshPrimitivesDS.FindDataElement( edgePointIndexListTag ) )
+        {
+          emptyOWDE.SetTag( edgePointIndexListTag );
+          surfaceMeshPrimitivesDS.Insert( emptyOWDE );
+        }
+
+        // Triangle Point Index List ( Type 2 )
+        Tag trianglePointIndexListTag(0x0066, 0x0023);
+        if( !surfaceMeshPrimitivesDS.FindDataElement( trianglePointIndexListTag ) )
+        {
+          emptyOWDE.SetTag( trianglePointIndexListTag );
+          surfaceMeshPrimitivesDS.Insert( emptyOWDE );
+        }
+
+        DataElement emptySQDE;
+        emptySQDE.SetVLToUndefined();
+        emptySQDE.SetVR( VR::SQ );
+        SmartPointer<SequenceOfItems> emptySequenceSQ = new SequenceOfItems;
+        emptySQDE.SetValue(*emptySequenceSQ);
+
+        // Triangle Strip Sequence ( Type 2 )
+        Tag triangleStripSequenceTag(0x0066, 0x0026);
+        if( !surfaceMeshPrimitivesDS.FindDataElement( triangleStripSequenceTag ) )
+        {
+          emptySQDE.SetTag( triangleStripSequenceTag );
+          surfaceMeshPrimitivesDS.Insert( emptySQDE );
+        }
+
+        // Triangle Fan Sequence ( Type 2 )
+        Tag triangleFanSequenceTag(0x0066, 0x0027);
+        if( !surfaceMeshPrimitivesDS.FindDataElement( triangleFanSequenceTag ) )
+        {
+          emptySQDE.SetTag( triangleFanSequenceTag );
+          surfaceMeshPrimitivesDS.Insert( emptySQDE );
+        }
+
+        // Line Sequence ( Type 2 )
+        Tag lineSequenceTag(0x0066, 0x0028);
+        if( !surfaceMeshPrimitivesDS.FindDataElement( lineSequenceTag ) )
+        {
+          emptySQDE.SetTag( lineSequenceTag );
+          surfaceMeshPrimitivesDS.Insert( emptySQDE );
+        }
+
+        // Facet Sequence ( Type 2 )
+        Tag facetSequenceTag(0x0066, 0x0034);
+        if( !surfaceMeshPrimitivesDS.FindDataElement( facetSequenceTag ) )
+        {
+          emptySQDE.SetTag( facetSequenceTag );
+          surfaceMeshPrimitivesDS.Insert( emptySQDE );
+        }
+
       }
       ++numSurface;
     }
@@ -626,8 +697,8 @@ bool SurfaceWriter::PrepareWrite()
           segmentsAlgoIdSQ->AddItem(item);
         }
 
-        ::gdcm::Item &    segmentsAlgoIdItem  = segmentsAlgoIdSQ->GetItem(1);
-        ::gdcm::DataSet & segmentsAlgoIdDS    = segmentsAlgoIdItem.GetNestedDataSet();
+        Item &    segmentsAlgoIdItem  = segmentsAlgoIdSQ->GetItem(1);
+        DataSet & segmentsAlgoIdDS    = segmentsAlgoIdItem.GetNestedDataSet();
 
         //*****   Algorithm Family Code Sequence    *****//
         //See: PS.3.3 Table 8.8-1 and PS 3.16 Context ID 7162
@@ -661,8 +732,8 @@ bool SurfaceWriter::PrepareWrite()
             algoFamilyCodeSQ->AddItem(item);
           }
 
-          ::gdcm::Item &    algoFamilyCodeItem  = algoFamilyCodeSQ->GetItem(1);
-          ::gdcm::DataSet & algoFamilyCodeDS    = algoFamilyCodeItem.GetNestedDataSet();
+          Item &    algoFamilyCodeItem  = algoFamilyCodeSQ->GetItem(1);
+          DataSet & algoFamilyCodeDS    = algoFamilyCodeItem.GetNestedDataSet();
 
           //*****   CODE SEQUENCE MACRO ATTRIBUTES   *****//
           {

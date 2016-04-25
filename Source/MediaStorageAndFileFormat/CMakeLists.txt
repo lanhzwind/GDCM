@@ -24,6 +24,7 @@ set(MSFF_SRCS
   gdcmPixmapToPixmapFilter.cxx
   gdcmImageChangeTransferSyntax.cxx
   gdcmImageApplyLookupTable.cxx
+  gdcmFileDecompressLookupTable.cxx
   gdcmOrientation.cxx
   gdcmDataSetHelper.cxx
   gdcmImageChangePlanarConfiguration.cxx
@@ -47,6 +48,7 @@ set(MSFF_SRCS
   gdcmDictPrinter.cxx
   gdcmXMLPrinter.cxx
   gdcmScanner.cxx
+  gdcmStrictScanner.cxx
   gdcmPixmapReader.cxx
   gdcmImageReader.cxx
   gdcmPixmapWriter.cxx
@@ -100,6 +102,12 @@ else ()
     gdcmOpenJPEG2Codec.cxx
   )
 endif()
+
+  list(APPEND MSFF_SRCS
+    ${GDCM_SOURCE_DIR}/Utilities/gdcmrle/rle.cxx
+    ${GDCM_SOURCE_DIR}/Utilities/gdcmrle/info.cxx
+    ${GDCM_SOURCE_DIR}/Utilities/gdcmrle/io.cxx
+  )
 
 # Do the proper thing when building static...if only there was configured
 # headers or def files instead
@@ -190,7 +198,6 @@ endif()
 
 # main libs:
 target_link_libraries(gdcmMSFF gdcmIOD gdcmDSED gdcmDICT ${GDCM_LJPEG_LIBRARIES} ${GDCM_OPENJPEG_LIBRARIES})
-set_target_properties(gdcmMSFF PROPERTIES ${GDCM_LIBRARY_PROPERTIES} LINK_INTERFACE_LIBRARIES "gdcmDSED;gdcmDICT;gdcmIOD")
 if(GDCM_USE_JPEGLS)
   target_link_libraries(gdcmMSFF ${GDCM_CHARLS_LIBRARIES})
 endif()
@@ -214,6 +221,13 @@ target_link_libraries(gdcmMSFF ${GDCMUUID})
 endif()
 if(GDCM_USE_SYSTEM_JSON)
 target_link_libraries(gdcmMSFF ${JSON_LIBRARIES})
+endif()
+# handling of static lib within shared is a mess:
+#target_link_libraries(gdcmMSFF gdcmrle)
+set_target_properties(gdcmMSFF PROPERTIES ${GDCM_LIBRARY_PROPERTIES})
+if(BUILD_SHARED_LIBS)
+  set(_ill "gdcmDSED;gdcmDICT;gdcmIOD")
+  set_target_properties(gdcmMSFF PROPERTIES INTERFACE_LINK_LIBRARIES "${_ill}" LINK_INTERFACE_LIBRARIES "${_ill}")
 endif()
 
 # libs

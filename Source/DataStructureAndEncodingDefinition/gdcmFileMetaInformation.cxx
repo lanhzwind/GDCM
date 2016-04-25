@@ -24,7 +24,7 @@
 
 #include "gdcmTag.h"
 
-namespace gdcm
+namespace gdcm_ns
 {
 
 const char FileMetaInformation::GDCM_FILE_META_INFORMATION_VERSION[] = "\0\1";
@@ -54,6 +54,10 @@ const char * FileMetaInformation::GetGDCMSourceApplicationEntityTitle()
   return GDCM_SOURCE_APPLICATION_ENTITY_TITLE;
 }
 
+// Keep cstor and dstor here to keep API minimal (see dllexport issue with gdcmstrict::)
+FileMetaInformation::FileMetaInformation():DataSetTS(TransferSyntax::TS_END),MetaInformationTS(TransferSyntax::Unknown),DataSetMS(MediaStorage::MS_END) {}
+FileMetaInformation::~FileMetaInformation() {}
+
 void FileMetaInformation::SetImplementationClassUID(const char * imp)
 {
   // TODO: it would be nice to make sure imp is actually a valid UID
@@ -78,7 +82,7 @@ void FileMetaInformation::SetImplementationVersionName(const char * version)
   if( version )
     {
     // Simply override the value since we cannot have more than 16bytes...
-    assert( strlen(version) <= 16 );
+    gdcmAssertAlwaysMacro( strlen(version) <= 16 );
     //ImplementationVersionName = GetGDCMImplementationVersionName();
     //ImplementationVersionName += "-";
     //ImplementationVersionName += version;
@@ -140,7 +144,7 @@ void FileMetaInformation::FillFromDataSet(DataSet const &ds)
     {
     if( !ds.FindDataElement( Tag(0x0008, 0x0016) ) || ds.GetDataElement( Tag(0x0008,0x0016) ).IsEmpty()  )
       {
-      gdcm::MediaStorage ms;
+      MediaStorage ms;
       ms.SetFromModality(ds);
       const char *msstr = ms.GetString();
       if( msstr )
@@ -567,7 +571,6 @@ std::istream &FileMetaInformation::ReadCompat(std::istream &is)
   if( !t.Read<SwapperNoOp>(is) )
     {
     throw Exception( "Cannot read very first tag" );
-    return is;
     }
   if( t.GetGroup() == 0x0002 )
     {
@@ -612,8 +615,19 @@ std::istream &FileMetaInformation::ReadCompat(std::istream &is)
     }
   else if( t.GetElement() == 0x0010 ) // Hum, is it a private creator ?
     {
-    is.seekg(-4, std::ios::cur); // Seek back
-    DataSetTS = TransferSyntax::ImplicitVRLittleEndian;
+    char vr_str[3];
+    is.read(vr_str, 2);
+    vr_str[2] = '\0';
+    VR::VRType vr = VR::GetVRType(vr_str);
+    if( vr != VR::VR_END )
+      {
+      DataSetTS = TransferSyntax::ExplicitVRLittleEndian;
+      }
+    else
+      {
+      DataSetTS = TransferSyntax::ImplicitVRLittleEndian;
+      }
+    is.seekg(-6, std::ios::cur); // Seek back
     }
   else
     {
@@ -720,7 +734,7 @@ std::istream &FileMetaInformation::ReadCompatInternal(std::istream &is)
     else
       {
       MetaInformationTS = TransferSyntax::Implicit;
-      gdcmWarningMacro( "File Meta Information is implicit. VR will be explicitely added" );
+      gdcmWarningMacro( "File Meta Information is implicit. VR will be explicitly added" );
       // Ok this might be an implicit encoded Meta File Information header...
       // GE_DLX-8-MONO2-PrivateSyntax.dcm
       is.seekg(-6, std::ios::cur); // Seek back
@@ -890,4 +904,4 @@ std::ostream &FileMetaInformation::Write(std::ostream &os) const
   return os;
 }
 
-} // end namespace gdcm
+} // end namespace gdcm_ns

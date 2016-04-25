@@ -34,6 +34,7 @@ namespace gdcm
 #include "gdcmStreamOffsetDataFiles.cxx"
 // After gdcmStreamOffsetDataFiles:
 #include "gdcmSelectedTagsOffsetDataFiles.cxx"
+#include "gdcmSelectedPrivateGroupOffsetDataFiles.cxx"
 
 bool Testing::ComputeMD5(const char *buffer, unsigned long buf_len,
   char digest_str[33])
@@ -183,6 +184,26 @@ std::streamoff Testing::GetStreamOffsetFromFile(const char *filepath)
   return so[i].offset;
 }
 
+std::streamoff Testing::GetSelectedPrivateGroupOffsetFromFile(const char *filepath)
+{
+  if(!filepath) return 0;
+  unsigned int i = 0;
+  const StreamOffset* so = gdcmSelectedPrivateGroupOffsetDataFiles;
+  const char *p = so[i].filename;
+  Filename comp(filepath);
+  const char *filename = comp.GetName();
+  while( p != 0 )
+    {
+    if( strcmp( filename, p ) == 0 )
+      {
+      break;
+      }
+    ++i;
+    p = so[i].filename;
+    }
+  return so[i].offset;
+}
+
 std::streamoff Testing::GetSelectedTagsOffsetFromFile(const char *filepath)
 {
   if(!filepath) return 0;
@@ -200,7 +221,8 @@ std::streamoff Testing::GetSelectedTagsOffsetFromFile(const char *filepath)
     ++i;
     p = so[i].filename;
     }
-  return so[i].offset;}
+  return so[i].offset;
+}
 
 // See TestImageReader + lossydump = true to generate this list:
 struct LossyFile
@@ -409,6 +431,9 @@ static const LossyFile gdcmLossyFilenames[] = {
 { 0, "NM-PAL-16-PixRep1.dcm" },
 { 0, "MEDILABInvalidCP246_EVRLESQasUN.dcm" },
 { 0, "JPEGInvalidSecondFrag.dcm" },
+{ 0, "SC16BitsAllocated_8BitsStoredJ2K.dcm" },
+{ 0, "SC16BitsAllocated_8BitsStoredJPEG.dcm" },
+{ 0, "SIEMENS_SYNGO-12-MONO2-LUTWrongLength512.dcm" },
 { 0, NULL }
 };
 

@@ -307,7 +307,7 @@ void DoIconImage(const DataSet& rootds, Pixmap& image)
           unsigned long check =
             (el_us3.GetValue(0) ? el_us3.GetValue(0) : 65536)
             * el_us3.GetValue(2) / 8;
-          assert( check == lut_raw->GetLength()
+          assert( check == lut_raw->GetLength() || 2 * check == lut_raw->GetLength()
             || check + 1 == lut_raw->GetLength() ); (void)check;
           }
         else if( ds.FindDataElement( seglut ) )
@@ -546,7 +546,7 @@ bool DoOverlays(const DataSet& ds, Pixmap& pixeldata)
 
         if( !ov.GrabOverlayFromPixelData(ds) )
           {
-          gdcmErrorMacro( "Could not extract Overlay from Pixel Data" );
+          gdcmWarningMacro( "Could not extract Overlay from Pixel Data" );
           //throw Exception("TODO: Could not extract Overlay Data");
           }
         updateoverlayinfo = true;
@@ -569,7 +569,8 @@ bool DoOverlays(const DataSet& ds, Pixmap& pixeldata)
       if( obp < pf.GetBitsStored() )
         {
         pixeldata.RemoveOverlay( ov );
-        gdcmWarningMacro( "Invalid BitPosition: " << obp << " for overlay #" << ov << " removing it." );
+        gdcmWarningMacro( "Invalid BitPosition: " << obp << " for overlay #" <<
+          ov << " removing it." );
         }
       }
     }
@@ -941,7 +942,7 @@ bool PixmapReader::ReadImageInternal(MediaStorage const &ms, bool handlepixeldat
         }
       else
         {
-        assert(0);
+        gdcmAssertAlwaysMacro(0);
         }
       }
     if( ! lut->Initialized() ) return false;
@@ -1002,7 +1003,7 @@ bool PixmapReader::ReadImageInternal(MediaStorage const &ms, bool handlepixeldat
     if( dims[0] == 0 || dims[1] == 0 )
       {
       // Pseudo-declared JPEG SC image storage. Let's fix col/row/pf/pi
-      gdcm::JPEGCodec jpeg;
+      JPEGCodec jpeg;
       if( jpeg.CanDecode( PixelData->GetTransferSyntax() ) )
         {
         std::stringstream ss;
@@ -1012,15 +1013,15 @@ bool PixmapReader::ReadImageInternal(MediaStorage const &ms, bool handlepixeldat
         if( !sqf )
           {
           // TODO: It would be nice to recognize file such as JPEGDefinedLengthSequenceOfFragments.dcm
-          gdcmDebugMacro( "File is declared as JPEG compressed but does not contains Fragmens explicitely." );
+          gdcmDebugMacro( "File is declared as JPEG compressed but does not contains Fragmens explicitly." );
           return false;
           }
         sqf->WriteBuffer( ss );
         //std::string s( bv->GetPointer(), bv->GetLength() );
         //is.str( s );
-        gdcm::PixelFormat jpegpf ( gdcm::PixelFormat::UINT8 ); // usual guess...
+        PixelFormat jpegpf ( PixelFormat::UINT8 ); // usual guess...
         jpeg.SetPixelFormat( jpegpf );
-        gdcm::TransferSyntax ts;
+        TransferSyntax ts;
         bool b = jpeg.GetHeaderInfo( ss, ts );
         if( b )
           {

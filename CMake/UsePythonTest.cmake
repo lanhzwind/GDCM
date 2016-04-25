@@ -51,7 +51,6 @@ macro(ADD_PYTHON_TEST TESTNAME FILENAME)
   message(\"${pyenv}\")
   execute_process(
     COMMAND ${PYTHON_EXECUTABLE} ${loc} ${wo_semicolumn}
-    #WORKING_DIRECTORY @LIBRARY_OUTPUT_PATH@
     RESULT_VARIABLE import_res
     OUTPUT_VARIABLE import_output
     ERROR_VARIABLE  import_output
@@ -59,14 +58,14 @@ macro(ADD_PYTHON_TEST TESTNAME FILENAME)
 
   # Pass the output back to ctest
   if(import_output)
-    message("\${import_output}")
+    message(\"\${import_output}\")
   endif()
   if(import_res)
-    message(SEND_ERROR "\${import_res}")
+    message(SEND_ERROR \"\${import_res}\")
   endif()
 "
 )
-  add_test(${TESTNAME} ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/${TESTNAME}.cmake)
+  add_test(NAME ${TESTNAME} COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/${TESTNAME}.cmake)
 endmacro()
 
 # Byte compile recursively a directory (DIRNAME)

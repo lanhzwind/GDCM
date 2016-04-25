@@ -1,10 +1,14 @@
-project(GDCM)
-cmake_minimum_required(VERSION 2.8.9)
-#-----------------------------------------------------------------------------
-# New cmake policy thingy
-if(COMMAND CMAKE_POLICY)
-  cmake_policy(SET CMP0003 NEW)
+cmake_minimum_required(VERSION 2.8.7)
+if(POLICY CMP0022)
+  cmake_policy(SET CMP0022 OLD)
 endif()
+if(POLICY CMP0025)
+  cmake_policy(SET CMP0025 NEW)
+endif()
+if(POLICY CMP0042)
+  cmake_policy(SET CMP0042 NEW)
+endif()
+project(GDCM)
 mark_as_advanced(CMAKE_BACKWARDS_COMPATIBILITY CMAKE_BUILD_TYPE CMAKE_INSTALL_PREFIX)
 set(GDCM_CMAKE_DIR "${GDCM_SOURCE_DIR}/CMake" CACHE INTERNAL "")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${GDCM_CMAKE_DIR}")
@@ -25,19 +29,9 @@ set(GDCM_PACKAGE_CONTACT "GDCM Developers <gdcm-developers@lists.sourceforge.net
 # See the CVS version of files in VTK/GUISupport/MFC for details. Or grep the
 # VTK source tree for "DELAYLOAD"
 
-#-----------------------------------------------------------------------------
-# Disallow insource build since I never test that
-string(COMPARE EQUAL "${GDCM_SOURCE_DIR}" "${GDCM_BINARY_DIR}" INSOURCE)
-get_filename_component(PARENTDIR ${GDCM_BINARY_DIR} PATH)
-string(COMPARE EQUAL "${GDCM_SOURCE_DIR}" "${PARENTDIR}" INSOURCESUBDIR)
-if(INSOURCE OR INSOURCESUBDIR)
-  message(FATAL_ERROR "GDCM requires an out of source Build. "
-    "Please create a separate binary directory and run CMake there.")
-endif()
-
 #----------------------------------------------------------------------------
 set(GDCM_MAJOR_VERSION 2)
-set(GDCM_MINOR_VERSION 4)
+set(GDCM_MINOR_VERSION 6)
 set(GDCM_BUILD_VERSION 1)
 set(GDCM_VERSION
   "${GDCM_MAJOR_VERSION}.${GDCM_MINOR_VERSION}.${GDCM_BUILD_VERSION}")
@@ -140,6 +134,7 @@ if(GDCM_STANDALONE)
   find_path(GDCM_DATA_ROOT test.acr
     ${GDCM_SOURCE_DIR}/Testing/Data
     $ENV{GDCM_DATA_ROOT}
+    NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH
     )
   mark_as_advanced(GDCM_DATA_ROOT)
 # You can define a path where you extra the famous D. Clunie spacing dataset
@@ -160,6 +155,7 @@ if(GDCM_STANDALONE)
     ${GDCM_SOURCE_DIR}/../gdcmDataExtra
     $ENV{GDCM_DATA_EXTRA_ROOT}
     $ENV{PUB_DICT_PATH}/../../gdcmDataExtra
+    NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH
     )
   mark_as_advanced(GDCM_DATA_EXTRA_ROOT)
 endif()
@@ -193,7 +189,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Build the main lib...
 if(NOT GDCM_HAVE_STDINT_H)
-  if(MSVC)
+  if( MSVC OR "x${CMAKE_CXX_COMPILER_ID}x" MATCHES "Intel" )
     include_directories(
       "${GDCM_SOURCE_DIR}/Utilities/C99"
       )
@@ -527,6 +523,11 @@ if(GDCM_STANDALONE)
   mark_as_advanced(GDCM_USE_ACTIVIZ)
   option(GDCM_USE_JPEGLS "Build GDCM with JPEG-LS support" ON)
   mark_as_advanced(GDCM_USE_JPEGLS)
+  if(GDCM_WRAP_JAVA)
+    set(GDCM_JAVA_SOURCE_VERSION "1.5" CACHE STRING "javac source version")
+    set(GDCM_JAVA_TARGET_VERSION "1.5" CACHE STRING "javac target version")
+    mark_as_advanced(GDCM_JAVA_SOURCE_VERSION GDCM_JAVA_TARGET_VERSION)
+  endif()
   if(GDCM_WRAP_CSHARP)
     find_package(CSharp REQUIRED)
     include(${CSharp_USE_FILE})
@@ -638,6 +639,7 @@ if(GDCM_STANDALONE)
     # needed here so that we have VTK_WRAP_PYTHON and al. available
     find_package(VTK REQUIRED)
     mark_as_advanced(VTK_DIR)
+    set(GDCM_VTK_DIR ${VTK_DIR})
     mark_as_advanced(GDCM_USE_PARAVIEW)
     subdirs(Utilities/VTK)
   endif()

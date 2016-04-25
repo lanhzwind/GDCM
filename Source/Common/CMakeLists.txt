@@ -20,7 +20,14 @@ mark_as_advanced(
 
 CHECK_INCLUDE_FILE_CONCAT("sys/time.h"     GDCM_HAVE_SYS_TIME_H)
 CHECK_INCLUDE_FILE_CONCAT("winsock.h"       GDCM_HAVE_WINSOCK_H)
-CHECK_INCLUDE_FILE_CONCAT("byteswap.h"       GDCM_HAVE_BYTESWAP_H)
+CHECK_INCLUDE_FILE_CONCAT("byteswap.h"       GDCM_HAVE_BYTESWAP_FILE_H)
+# see bug #324
+if(GDCM_HAVE_BYTESWAP_FILE_H)
+  include(CheckCXXSourceCompiles)
+  CHECK_CXX_SOURCE_COMPILES(
+    "\#include <byteswap.h>\nint main() { return bswap_32( 42 ); }"
+    GDCM_HAVE_BYTESWAP_H)
+endif()
 CHECK_INCLUDE_FILE("rpc.h"       GDCM_HAVE_RPC_H)
 CHECK_INCLUDE_FILE("langinfo.h"       GDCM_HAVE_LANGINFO_H)
 
@@ -41,6 +48,10 @@ CHECK_FUNCTION_EXISTS(strptime    GDCM_HAVE_STRPTIME)
 CHECK_FUNCTION_EXISTS(_stricmp    GDCM_HAVE__STRICMP)
 CHECK_FUNCTION_EXISTS(_strnicmp   GDCM_HAVE__STRNICMP)
 CHECK_FUNCTION_EXISTS(_snprintf   GDCM_HAVE__SNPRINTF)
+# This is C99
+set(CMAKE_REQUIRED_INCLUDES math.h)
+set(CMAKE_REQUIRED_LIBRARIES m)
+check_function_exists(lround GDCM_HAVE_LROUND)
 
 #include(CheckSymbolExists)
 CHECK_FUNCTION_EXISTS(gettimeofday GDCM_HAVE_GETTIMEOFDAY)
@@ -168,7 +179,6 @@ set(Common_SRCS ${Common_SRCS}
 endif()
 
 add_library(gdcmCommon ${Common_SRCS})
-set_target_properties(gdcmCommon PROPERTIES ${GDCM_LIBRARY_PROPERTIES} LINK_INTERFACE_LIBRARIES "")
 
 #target_link_libraries(gdcmCommon ${GDCM_ZLIB_LIBRARIES}) # ${GDCM_POLARSSL_LIBRARIES})
 if(GDCM_BUILD_TESTING)
@@ -189,6 +199,10 @@ endif()
 if(GDCM_USE_SYSTEM_OPENSSL)
   include_directories(${OPENSSL_INCLUDE_DIR})
   target_link_libraries(gdcmCommon ${OPENSSL_LIBRARIES})
+endif()
+set_target_properties(gdcmCommon PROPERTIES ${GDCM_LIBRARY_PROPERTIES})
+if(BUILD_SHARED_LIBS)
+  set_target_properties(gdcmCommon PROPERTIES INTERFACE_LINK_LIBRARIES "" LINK_INTERFACE_LIBRARIES "")
 endif()
 
 # libs

@@ -990,6 +990,13 @@ bool CSAHeader::LoadFromDataElement(DataElement const &de)
     gdcmErrorMacro( "Too short" );
     return false;
     }
+  // Some silly software consider the tag to be OW, therefore they byteswap it !!! sigh
+  if( strcmp( signature, "VS01" ) == 0 )
+  {
+    SwapperDoOp::SwapArray( (unsigned short*)s.c_str(), (s.size() + 1) / 2 );
+    ss.str( s );
+    ss.read(signature, 4);
+  }
   //std::cout << signature << std::endl;
   // 1. NEW FORMAT
   // 2. OLD FORMAT
@@ -1231,6 +1238,10 @@ bool CSAHeader::FindCSAElementByName(const char *name)
 static const char csaheader[] = "SIEMENS CSA HEADER";
 static const gdcm::PrivateTag t1(0x0029,0x0010,csaheader); // CSA Image Header Info
 static const gdcm::PrivateTag t2(0x0029,0x0020,csaheader); // CSA Series Header Info
+
+//static const char csaheader2[] = "SIEMENS MEDCOM HEADER2";
+//static const gdcm::PrivateTag t4(0x0029,0x0010,csaheader2); // CSA Image Header Info
+//static const gdcm::PrivateTag t5(0x0029,0x0020,csaheader2); // CSA Series Header Info
 
 static const char csanonimage[] = "SIEMENS CSA NON-IMAGE";
 static const gdcm::PrivateTag t3(0x0029,0x0010,csanonimage); // CSA Data Info

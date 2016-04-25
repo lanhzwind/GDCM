@@ -59,7 +59,7 @@ ServiceClassUser::ServiceClassUser()
   Internals->hostname = "localhost";
   Internals->port = 104;
   Internals->portscp = 104;
-  Internals->aetitle = "GDCMSCU";
+  Internals->aetitle = GDCM_AETITLE;
   Internals->calledaetitle = "ANY-SCP";
   Internals->timeout = 10;
 }
@@ -807,7 +807,7 @@ EStateID ServiceClassUser::RunMoveEventLoop(ULEvent& currentEvent, ULConnectionC
         }
       catch ( std::exception & e )
         {
-        gdcmErrorMacro( "Error 2nd connection:" << e.what() );
+        gdcmErrorMacro( "Error 2nd connection:" << e.what() ); (void)e;
         }
       catch ( ... )
         {

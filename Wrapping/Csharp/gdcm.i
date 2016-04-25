@@ -80,6 +80,7 @@ public class";
 #include "gdcmSwapCode.h"
 #include "gdcmEvent.h"
 #include "gdcmProgressEvent.h"
+#include "gdcmFileNameEvent.h"
 #include "gdcmAnonymizeEvent.h"
 #include "gdcmDirectory.h"
 #ifdef GDCM_BUILD_TESTING
@@ -136,6 +137,7 @@ public class";
 #include "gdcmUUIDGenerator.h"
 //#include "gdcmConstCharWrapper.h"
 #include "gdcmScanner.h"
+#include "gdcmStrictScanner.h"
 #include "gdcmAttribute.h"
 #include "gdcmSubject.h"
 #include "gdcmCommand.h"
@@ -194,6 +196,7 @@ public class";
 #include "gdcmDecoder.h"
 #include "gdcmCodec.h"
 #include "gdcmImageCodec.h"
+#include "gdcmRLECodec.h"
 #include "gdcmJPEGCodec.h"
 #include "gdcmJPEGLSCodec.h"
 #include "gdcmJPEG2000Codec.h"
@@ -317,6 +320,12 @@ EXTEND_CLASS_PRINT(gdcm::PrivateTag)
     return dynamic_cast<ProgressEvent*>(event);
   }
 };
+%include "gdcmFileNameEvent.h"
+%extend gdcm::FileNameEvent {
+  static FileNameEvent *Cast(Event *event) {
+    return dynamic_cast<FileNameEvent*>(event);
+  }
+};
 //%feature("director") AnonymizeEvent;
 %include "gdcmAnonymizeEvent.h"
 %extend gdcm::AnonymizeEvent {
@@ -353,7 +362,7 @@ EXTEND_CLASS_PRINT(gdcm::Value)
 // Array marshaling for arrays of primitives
 %define %cs_marshal_array(TYPE, CSTYPE)
        %typemap(ctype)  TYPE[] "void*"
-       %typemap(imtype, inattributes="[MarshalAs(UnmanagedType.LPArray)]") TYPE[] "CSTYPE[]"
+       %typemap(imtype, inattributes="[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPArray)]") TYPE[] "CSTYPE[]"
        %typemap(cstype) TYPE[] "CSTYPE[]"
        %typemap(in)     TYPE[] %{ $1 = (TYPE*)$input; %}
        %typemap(csin)   TYPE[] "$csinput"
@@ -422,10 +431,8 @@ EXTEND_CLASS_PRINT(gdcm::DataElement)
 
 %include "gdcmItem.h"
 EXTEND_CLASS_PRINT(gdcm::Item)
-/*
- The following line is very important it properly convert :
-SWIGTYPE_p_std__vectorT_int_t__size_type -> uint
-*/
+// The following line is very important it properly convert :
+// SWIGTYPE_p_std__vectorT_int_t__size_type -> uint
 %template() std::vector< gdcm::Item >;
 %include "gdcmSequenceOfItems.h"
 EXTEND_CLASS_PRINT(gdcm::SequenceOfItems)
@@ -593,6 +600,9 @@ EXTEND_CLASS_PRINT(gdcm::Dicts)
 %template(SmartPtrScan) gdcm::SmartPointer<gdcm::Scanner>;
 %include "gdcmScanner.h"
 EXTEND_CLASS_PRINT(gdcm::Scanner)
+%template(SmartPtrStrictScan) gdcm::SmartPointer<gdcm::StrictScanner>;
+%include "gdcmStrictScanner.h"
+EXTEND_CLASS_PRINT(gdcm::StrictScanner)
 
 %template(SmartPtrAno) gdcm::SmartPointer<gdcm::Anonymizer>;
 //%ignore gdcm::Anonymizer::Anonymizer;
@@ -773,9 +783,30 @@ EXTEND_CLASS_PRINT(gdcm::ModuleEntry)
 //%include "gdcmCodec.h"
 %feature("director") ImageCodec;
 %include "gdcmImageCodec.h"
+%include "gdcmRLECodec.h"
+%extend gdcm::RLECodec {
+  static RLECodec *Cast(ImageCodec *ic) {
+    return dynamic_cast<RLECodec*>(ic);
+  }
+};
 %include "gdcmJPEGCodec.h"
+%extend gdcm::JPEGCodec {
+  static JPEGCodec *Cast(ImageCodec *ic) {
+    return dynamic_cast<JPEGCodec*>(ic);
+  }
+};
 %include "gdcmJPEGLSCodec.h"
+%extend gdcm::JPEGLSCodec {
+  static JPEGLSCodec *Cast(ImageCodec *ic) {
+    return dynamic_cast<JPEGLSCodec*>(ic);
+  }
+};
 %include "gdcmJPEG2000Codec.h"
+%extend gdcm::JPEG2000Codec {
+  static JPEG2000Codec *Cast(ImageCodec *ic) {
+    return dynamic_cast<JPEG2000Codec*>(ic);
+  }
+};
 %include "gdcmPNMCodec.h"
 %include "gdcmImageChangeTransferSyntax.h"
 %template(SmartPtrFCTS) gdcm::SmartPointer<gdcm::FileChangeTransferSyntax>;

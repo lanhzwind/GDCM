@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 2.8.7)
+
 if(NOT EXPAT_NAMESPACE)
   set(EXPAT_NAMESPACE "EXPAT")
   set(EXPAT_STANDALONE 1)
@@ -6,7 +8,6 @@ endif()
 string(TOLOWER ${EXPAT_NAMESPACE} EXPAT_LIBRARY_NAME)
 
 project(${EXPAT_NAMESPACE} C)
-cmake_minimum_required(VERSION 2.2)
 
 set(EXPAT_MAJOR_VERSION 2)
 set(EXPAT_MINOR_VERSION 0)
@@ -45,4 +46,3 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/expat_mangle.h.in
 # for expat_config.h
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 subdirs(lib)
-

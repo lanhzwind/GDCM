@@ -13,7 +13,7 @@ set(DSED_TEST_SRCS
   TestPreamble
   TestReader
   TestReader4
-  TestReaderUpToTag
+  TestReaderUpToTag1
   TestReaderUpToTag2
   TestReaderSelectedTags
   TestReaderSelectedPrivateGroups
@@ -30,7 +30,7 @@ set(DSED_TEST_SRCS
   TestDS
   TestVRLT
   TestVRUI
-  TestElement
+  TestElement1
   #TestExplicitDataElement
   TestFileMetaInformation
   TestFile
@@ -53,6 +53,7 @@ set(DSED_TEST_SRCS
   TestElement2
   TestElement4
   TestElement5
+  TestElement6
   )
 if(GDCM_TESTING_USE_LC_NUMERIC)
 # The test expect to be able to set fr as locale only turn if user
@@ -69,6 +70,7 @@ set(DSED_TEST_SRCS
   TestAttribute8
   TestPDBHeader
   TestSequenceOfItems2
+  TestSequenceOfItems3
   )
 endif()
 if(GDCM_DATA_EXTRA_ROOT)
@@ -115,16 +117,9 @@ if(CMAKE_COMPILER_IS_GNUCXX AND MINGW)
   set_target_properties( gdcmDSEDTests PROPERTIES LINK_FLAGS "-Wl,--allow-multiple-definition")
 endif()
 
-#Don't understand why I need that ??
-set(GDCM_DSED_TESTS "${EXECUTABLE_OUTPUT_PATH}/gdcmDSEDTests")
-
 # Loop over files and create executables
 foreach(name ${DSED_TEST_SRCS})
-if(CMAKE_CROSSCOMPILING)
-  add_test(${name} ${TARGET_LINK_LIBRARIES} ${GDCM_DSED_TESTS}${CMAKE_EXECUTABLE_SUFFIX} ${name})
-else()
-  add_test(${name} ${GDCM_DSED_TESTS} ${name})
-endif()
+  add_test(NAME ${name} COMMAND gdcmDSEDTests ${name})
 endforeach()
 
 # FIXME

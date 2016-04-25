@@ -12,7 +12,7 @@
 #
 
 macro(install_swig_module module_name module_type)
-  # The following trick permits installion of module to the right destination:
+  # The following trick permits installation of module to the right destination:
   # binary path for dll (on windows)
   # library for non-dll platform
   if(WIN32)
@@ -43,6 +43,8 @@ macro(install_library library)
       LIBRARY DESTINATION ${GDCM_INSTALL_LIB_DIR} COMPONENT Libraries ${NAMELINK_SKIP}
       ARCHIVE DESTINATION ${GDCM_INSTALL_LIB_DIR} COMPONENT DebugDevel
       )
+    # need recent cmake: http://cmake.org/gitweb?p=cmake.git;a=commitdiff;h=cbe7e8fa
+    #export(EXPORT ${GDCM_TARGETS_NAME} APPEND FILE "${CMAKE_CURRENT_BINARY_DIR}/foo.cmake")
     #Development
     if(NAMELINK_ONLY)
       install(TARGETS ${library}

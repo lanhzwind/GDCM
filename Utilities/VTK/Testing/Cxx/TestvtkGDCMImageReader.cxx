@@ -17,7 +17,6 @@
 #include "vtkPNGWriter.h"
 #include "vtkImageData.h"
 #include "vtkStringArray.h"
-//#include <vtksys/SystemTools.hxx>
 
 #include "gdcmFilename.h"
 #include "gdcmTesting.h"
@@ -25,7 +24,7 @@
 #include "gdcmTrace.h"
 #include "gdcmDirectory.h"
 
-int TestvtkGDCMImageRead(const char *filename, bool verbose)
+static int TestvtkGDCMImageRead(const char *filename, bool verbose)
 {
   if( verbose )
     std::cerr << "Reading : " << filename << std::endl;

@@ -10,7 +10,7 @@ set(Common_TEST_SRCS
   TestSystem3
   TestSwapper
   TestByteSwap
-  TestString
+  TestString1
   TestString2
   TestTerminal
   TestFilenameGenerator
@@ -23,6 +23,7 @@ set(Common_TEST_SRCS
   TestTypes
   TestUnpacker12Bits
   TestBase64
+  TestLog2
   )
 
 if(GDCM_DATA_ROOT)
@@ -49,14 +50,7 @@ create_test_sourcelist(CommonTests gdcmCommonTests.cxx ${Common_TEST_SRCS}
 add_executable(gdcmCommonTests ${CommonTests})
 target_link_libraries(gdcmCommonTests gdcmCommon)
 
-#Don't understand why I need that ??
-set(GDCM_Common_TESTS "${EXECUTABLE_OUTPUT_PATH}/gdcmCommonTests")
-
 # Loop over files and create executables
 foreach(name ${Common_TEST_SRCS})
-if(CMAKE_CROSSCOMPILING)
-  add_test(${name} ${TARGET_SYSTEM_EMULATOR} ${GDCM_Common_TESTS}${CMAKE_EXECUTABLE_SUFFIX} ${name})
-else()
-  add_test(${name} ${GDCM_Common_TESTS} ${name})
-endif()
+  add_test(NAME ${name} COMMAND gdcmCommonTests ${name})
 endforeach()

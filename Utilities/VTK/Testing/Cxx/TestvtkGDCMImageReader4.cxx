@@ -76,6 +76,7 @@ int TestvtkGDCMImageRead4(const char *filename, bool verbose)
   scanner.AddTag( t2 );
   const gdcm::Global& g = gdcm::Global::GetInstance();
   const gdcm::Dicts &ds = g.GetDicts();
+  (void)ds;
 
   bool b = scanner.Scan( l );
   if( !b )
@@ -85,7 +86,7 @@ int TestvtkGDCMImageRead4(const char *filename, bool verbose)
 
   vtkMedicalImageProperties * medprop = reader->GetMedicalImageProperties();
 
-#if ( VTK_MAJOR_VERSION == 5 && VTK_MINOR_VERSION > 0 )
+#if ( VTK_MAJOR_VERSION == 5 && VTK_MINOR_VERSION > 0 ) || VTK_MAJOR_VERSION > 5
   const char *value1 =  scanner.GetValue( filename, t1 );
   const gdcm::DictEntry& de1 = ds.GetDictEntry( t1 );
   medprop->AddUserDefinedValue(de1.GetName(), value1);
@@ -112,7 +113,11 @@ int TestvtkGDCMImageRead4(const char *filename, bool verbose)
   std::string gdcmfile = gdcm::Testing::GetTempFilename( filename, subdir );
 
   vtkGDCMImageWriter *writer = vtkGDCMImageWriter::New();
+#if (VTK_MAJOR_VERSION >= 6)
+  writer->SetInputConnection( reader->GetOutputPort() );
+#else
   writer->SetInput( reader->GetOutput() );
+#endif
   writer->SetFileLowerLeft( reader->GetFileLowerLeft() );
   writer->SetDirectionCosines( reader->GetDirectionCosines() );
   writer->SetImageFormat( reader->GetImageFormat() );

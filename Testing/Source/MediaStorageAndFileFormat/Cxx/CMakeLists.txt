@@ -3,6 +3,9 @@
 set(MSFF_TEST_SRCS
   TestAnonymizer
   TestFileChangeTransferSyntax1
+  TestFileChangeTransferSyntax2
+  TestFileChangeTransferSyntax3
+  TestFileChangeTransferSyntax4
   TestFileStreamer1
   TestFileStreamer2
   TestFileStreamer3
@@ -12,6 +15,7 @@ set(MSFF_TEST_SRCS
   TestFileAnonymizer1
   TestFileAnonymizer2
   TestFileAnonymizer3
+  TestFileAnonymizer4
   TestIconImageFilter
   TestIconImageGenerator
   TestIconImageGenerator2
@@ -42,19 +46,23 @@ set(MSFF_TEST_SRCS
   TestImageChangeTransferSyntax6
   TestImageChangeTransferSyntax7
   TestImageApplyLookupTable
+  TestFileDecompressLookupTable
   TestImageChangePlanarConfiguration
   TestCoder
   TestDecoder
-  TestRescaler
+  TestRescaler1
+  TestRescaler2
   TestDumper
   TestDictPrinter
   TestApplicationEntity
-  TestStringFilter
+  TestStringFilter1
+  TestStringFilter2
+  TestStringFilter3
   TestUIDGenerator
   TestUUIDGenerator
   #TestUIDGenerator3
   TestXMLPrinter
-  TestPrinter
+  TestPrinter1
   TestPrint
   TestSorter
   TestImageReader
@@ -95,7 +103,11 @@ set(MSFF_TEST_SRCS
 if(GDCM_DATA_ROOT)
   set(MSFF_TEST_SRCS
     ${MSFF_TEST_SRCS}
-    TestScanner
+    TestStrictScanner1
+    TestStrictScanner2
+    TestScanner1
+    TestScanner2
+    TestImageHelper2
     TestPrinter2
     TestIPPSorter
     TestIPPSorter2
@@ -170,19 +182,12 @@ create_test_sourcelist(MSFFTests gdcmMSFFTests.cxx ${MSFF_TEST_SRCS}
 add_executable(gdcmMSFFTests ${MSFFTests})
 target_link_libraries(gdcmMSFFTests gdcmMSFF)
 if(GDCM_HAVE_PTHREAD_H)
-target_link_libraries(gdcmMSFFTests pthread)
+  target_link_libraries(gdcmMSFFTests pthread)
 endif()
-
-#Don't understand why I need that ??
-set(GDCM_MSFF_TESTS "${EXECUTABLE_OUTPUT_PATH}/gdcmMSFFTests")
 
 # Loop over files and create executables
 foreach(name ${MSFF_TEST_SRCS})
-if(CMAKE_CROSSCOMPILING)
-  add_test(${name} ${TARGET_SYSTEM_EMULATOR} ${GDCM_MSFF_TESTS}${CMAKE_EXECUTABLE_SUFFIX} ${name})
-else()
-  add_test(${name} ${GDCM_MSFF_TESTS} ${name})
-endif()
+  add_test(NAME ${name} COMMAND gdcmMSFFTests ${name})
 endforeach()
 if(GDCM_DATA_ROOT)
   set_tests_properties(TestDICOMDIRGenerator2 PROPERTIES WILL_FAIL ON)
@@ -198,7 +203,7 @@ foreach(filename ${gdcm_data_filenames_glob})
       if(DCMTK_DCMDUMP_EXECUTABLE)
         # -M : load short tags
         # -dc: disable correction
-        add_test("DCMDUMP-${filename_name}" ${DCMTK_DCMDUMP_EXECUTABLE} -M -dc
+        add_test(NAME "DCMDUMP-${filename_name}" COMMAND ${DCMTK_DCMDUMP_EXECUTABLE} -M -dc
           "${GDCM_TEMP_DIRECTORY}/TestWriter/${filename_name}")
       endif()
     endif()
@@ -212,7 +217,7 @@ foreach(filename ${gdcm_data_filenames_glob})
   if(NOT bad_dicom)
     if(GDCM_TEST_DICOM3TOOLS)
       if(DCDUMP_EXECUTABLE)
-        add_test("DCDUMP-${filename_name}" "${DCDUMP_EXECUTABLE}"
+        add_test(NAME "DCDUMP-${filename_name}" COMMAND "${DCDUMP_EXECUTABLE}"
           "${GDCM_TEMP_DIRECTORY}/TestWriter/${filename_name}")
       endif()
     endif()
@@ -229,7 +234,7 @@ foreach(filename ${gdcm_data_filenames_glob})
   if(NOT bad_dicom)
     if(GDCM_TEST_DCMTK)
       if(DCMTK_DCMDJPEG_EXECUTABLE)
-        add_test("DCMDJPEG-${filename_name}" ${DCMTK_DCMDJPEG_EXECUTABLE}
+        add_test(NAME "DCMDJPEG-${filename_name}" COMMAND ${DCMTK_DCMDJPEG_EXECUTABLE}
           "${GDCM_TEMP_DIRECTORY}/TestImageChangeTransferSyntax/${filename_name}"
           "${GDCM_TEMP_DIRECTORY}/TestImageChangeTransferSyntax/dcmdjpeg/${filename_name}")
         # Special handling of the DICOMDIR files:
@@ -251,7 +256,7 @@ foreach(filename ${gdcm_data_filenames_glob})
   if(NOT bad_dicom)
     if(GDCM_TEST_DCMTK)
       if(DCMTK_DCMDRLE_EXECUTABLE)
-        add_test("DCMDRLE-${filename_name}" ${DCMTK_DCMDRLE_EXECUTABLE}
+        add_test(NAME "DCMDRLE-${filename_name}" COMMAND ${DCMTK_DCMDRLE_EXECUTABLE}
           "${GDCM_TEMP_DIRECTORY}/TestImageChangeTransferSyntax3/${filename_name}"
           "${GDCM_TEMP_DIRECTORY}/TestImageChangeTransferSyntax3/dcmdrle/${filename_name}")
         # Special handling of the DICOMDIR files:
@@ -275,7 +280,7 @@ foreach(filename ${gdcm_data_filenames_glob})
     if(GDCM_TEST_DCMTK)
       if(DCMTK_DCMDJPLS_EXECUTABLE)
         #if(EXISTS "${GDCM_TEMP_DIRECTORY}/TestImageChangeTransferSyntax5/${filename_name}")
-        add_test("DCMDJPLS-${filename_name}" ${DCMTK_DCMDJPLS_EXECUTABLE}
+        add_test(NAME "DCMDJPLS-${filename_name}" COMMAND ${DCMTK_DCMDJPLS_EXECUTABLE}
           "${GDCM_TEMP_DIRECTORY}/TestImageChangeTransferSyntax5/${filename_name}"
           "${GDCM_TEMP_DIRECTORY}/TestImageChangeTransferSyntax5/dcmdjpls/${filename_name}")
         # Special handling of the DICOMDIR files:

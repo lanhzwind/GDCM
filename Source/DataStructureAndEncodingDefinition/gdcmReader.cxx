@@ -32,8 +32,14 @@
 #endif
 
 
-namespace gdcm
+namespace gdcm_ns
 {
+
+Reader::Reader():F(new File)
+{
+  Stream = NULL;
+  Ifstream = NULL;
+}
 
 Reader::~Reader()
 {
@@ -198,9 +204,9 @@ namespace details
   class DefaultCaller
   {
   private:
-    gdcm::DataSet & m_dataSet;
+    DataSet & m_dataSet;
   public:
-    DefaultCaller(gdcm::DataSet &ds): m_dataSet(ds){}
+    DefaultCaller(DataSet &ds): m_dataSet(ds){}
     template<class T1, class T2>
       void ReadCommon(std::istream & is) const
         {
@@ -224,11 +230,11 @@ namespace details
   class ReadUpToTagCaller
   {
   private:
-    gdcm::DataSet & m_dataSet;
-    const gdcm::Tag & m_tag;
-    std::set<gdcm::Tag> const & m_skipTags;
+    DataSet & m_dataSet;
+    const Tag & m_tag;
+    std::set<Tag> const & m_skipTags;
   public:
-    ReadUpToTagCaller(gdcm::DataSet &ds,const gdcm::Tag & tag, std::set<gdcm::Tag> const & skiptags)
+    ReadUpToTagCaller(DataSet &ds,const Tag & tag, std::set<Tag> const & skiptags)
     :
     m_dataSet(ds),m_tag(tag),m_skipTags(skiptags)
     {
@@ -691,9 +697,14 @@ bool Reader::InternalReadCommon(const T_Caller &caller)
         caller.template ReadCommon<ExplicitImplicitDataElement,SwapperNoOp>(is);
         // This file can only be rewritten as implicit...
         }
+      else
+        {
+        gdcmDebugMacro( "No way this is DICOM" );
+        success = false;
+        }
       }
 #else
-    gdcmDebugMacro( ex.what() );
+    gdcmDebugMacro( ex.what() ); (void)ex;
     success = false;
 #endif /* GDCM_SUPPORT_BROKEN_IMPLEMENTATION */
     }
@@ -1004,5 +1015,10 @@ void Reader::SetFileName(const char *filename)
     }
 }
 
+size_t Reader::GetStreamCurrentPosition() const
+{
+  return static_cast<size_t>(GetStreamPtr()->tellg());
+}
 
-} // end namespace gdcm
+
+} // end namespace gdcm_ns

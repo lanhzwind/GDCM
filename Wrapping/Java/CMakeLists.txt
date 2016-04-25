@@ -35,7 +35,7 @@ separate_arguments(CMAKE_SWIG_FLAGS)
 SWIG_ADD_MODULE(gdcmjni java gdcm.i)
 SWIG_LINK_LIBRARIES(gdcmjni gdcmMSFF
   gdcmMEXD
-  # There is no real point in linking explicitely to jni libraries. This is a java module
+  # There is no real point in linking explicitly to jni libraries. This is a java module
   # it could contains undefined symbols after all.
   #${JNI_LIBRARIES}
 )
@@ -77,7 +77,7 @@ add_custom_command(
 # please compiler such as ecj (Eclipse Java Compiler 0.894_R34x) explicitly
 # state we want 1.5 version to compile gdcm::ImageToImageFilter::GetOutput()
 # const as covariant return type
-  COMMAND ${Java_JAVAC_EXECUTABLE} ARGS -source 1.5 -target 1.5 "gdcm/*.java" #${javafiles}
+  COMMAND ${Java_JAVAC_EXECUTABLE} ARGS -source ${GDCM_JAVA_SOURCE_VERSION} -target ${GDCM_JAVA_TARGET_VERSION} "gdcm/*.java" #${javafiles}
 # 2. now that the *.class have been generated construct the jar file. We can
 # only rely on the gdcm.java / gdcm.class to build dependencie, I am pretty
 # sure it will break parallel builds... oh well
